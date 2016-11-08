@@ -1,0 +1,6 @@
+/build
+/src/main/assets/keys.properties
+/src/test/java/benjamin/shoppingapplication/walmartsearchnoresults.json
+/src/test/java/benjamin/shoppingapplication/walmartupc.json
+/src/test/java/benjamin/shoppingapplication/walmartsearch.json
+/src/test/java/benjamin/shoppingapplication/walmarterrorupc.json
