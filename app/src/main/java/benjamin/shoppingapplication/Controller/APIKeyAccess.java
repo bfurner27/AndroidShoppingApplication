@@ -39,7 +39,7 @@ public class APIKeyAccess {
 
     /**
      *
-     * @param context
+     * @param context - the context of the base in memory
      */
     private void loadPropertyFile (Context context) {
         keyProperties = new Properties();

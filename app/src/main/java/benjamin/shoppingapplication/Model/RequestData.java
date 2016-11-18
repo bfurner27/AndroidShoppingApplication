@@ -12,6 +12,7 @@ public class RequestData {
     private String upc;
     private String search;
     private Integer productNumber;
+    private String searchIndex;
 
     /**
      * If the UPC is the only available value then this constructor can be used.
@@ -21,17 +22,20 @@ public class RequestData {
         this.upc = upc;
         this.search = null;
         this.productNumber = null;
+        this.searchIndex = null;
     }
+
 
     /**
      * Allows the user to initialize data if there is no product number
      * @param upc - The UPC number from a barcode
-     * @param search - The search value to search through the API
+     * @param searchIndex - The search value to search through the API
      */
-    public RequestData(String upc, String search) {
+    public RequestData(String upc, String searchIndex) {
         this.upc = upc;
-        this.search = search;
+        this.search = null;
         this.productNumber = null;
+        this.searchIndex = searchIndex;
     }
 
     /**
@@ -46,6 +50,22 @@ public class RequestData {
         this.upc = upc;
         this.search = search;
         this.productNumber = productNumber;
+        this.searchIndex = null;
+    }
+
+    /**
+     * This will take the extra parameter of a search index to make sure that more accurate
+     * results can be obtained
+     * @param searchIndex - the index or category of items to be searched for
+     * @param productNumber - the number of the product such as an ID
+     * @param search - the search string to enter into the search
+     * @param upc - the upc number of a specific product
+     */
+    public RequestData(String searchIndex, Integer productNumber, String search, String upc) {
+        this.searchIndex = searchIndex;
+        this.productNumber = productNumber;
+        this.search = search;
+        this.upc = upc;
     }
 
     /**
@@ -85,6 +105,14 @@ public class RequestData {
         return eProductNumber;
     }
 
+    public boolean hasSearchIndex() {
+        boolean eSearchIndex = false;
+        if (searchIndex != null) {
+            eSearchIndex = true;
+        }
+        return eSearchIndex;
+    }
+
     public String getUpc() {
         return upc;
     }
@@ -92,6 +120,10 @@ public class RequestData {
     public String getSearch() {
         return search;
 
+    }
+
+    public String getSearchIndex () {
+        return searchIndex;
     }
 
     public Integer getProductNumber() {

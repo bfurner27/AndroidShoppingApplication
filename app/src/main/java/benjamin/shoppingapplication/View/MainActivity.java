@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import benjamin.shoppingapplication.Controller.APIKeyAccess;
 import benjamin.shoppingapplication.Controller.MainController;
+import benjamin.shoppingapplication.Model.APIEndpoints.AmazonSearch;
 import benjamin.shoppingapplication.Model.RequestData;
 import benjamin.shoppingapplication.R;
 
@@ -22,11 +23,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         // here to ensure that the keys in the property file are available
         APIKeyAccess.getInstance().setPropertyFile(getBaseContext());
+        Log.i("MainActivity", "Context: " + getBaseContext().toString());
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         //TODO flush out the interface and remove the following line of code, this is just to get things rolling
-        MainController.getInstance().queryAPIs(new RequestData(""));
+        RequestData requestData = new RequestData("035000521019");
+        MainController.getInstance().queryAPIs(requestData);
     }
 }
