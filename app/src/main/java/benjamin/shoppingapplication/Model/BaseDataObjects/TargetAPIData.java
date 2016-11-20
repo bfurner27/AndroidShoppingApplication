@@ -10,7 +10,7 @@ public class TargetAPIData extends APIData {
      * Constructors
      *****************************************************/
     public TargetAPIData() {
-        super("", "", "", "", "", "Target", 0);
+        super("", "", "", "", "", "Target", "");
     }
 
     /****************************************
@@ -25,12 +25,12 @@ public class TargetAPIData extends APIData {
      * @param productNumber - the number of the product if applicable
      */
     public TargetAPIData(String price, String name, String description, String pictureURL,
-                         String productURL, Integer productNumber) {
+                         String productURL, String productNumber) {
         super(price, name, description, pictureURL, productURL, "Target", productNumber);
     }
 
     @Override
-    public void parseJSON(String json) {
+    public void parse(String data) {
 
     }
 

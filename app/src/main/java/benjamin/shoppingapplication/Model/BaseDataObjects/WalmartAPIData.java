@@ -11,7 +11,7 @@ public class WalmartAPIData extends APIData {
      * Constructors
      *****************************************************/
     public WalmartAPIData() {
-        super("", "", "", "", "", "Walmart", 0);
+        super("", "", "", "", "", "Walmart", "");
     }
 
     /****************************************
@@ -26,13 +26,13 @@ public class WalmartAPIData extends APIData {
      * @param productNumber - the number of the product if applicable
      */
     public WalmartAPIData(String price, String name, String description, String pictureURL,
-                         String productURL, Integer productNumber) {
+                         String productURL, String productNumber) {
         super(price, name, description, pictureURL, productURL, "Walmart", productNumber);
     }
 
 
     @Override
-    public void parseJSON(String json) {
+    public void parse(String data) {
 
     }
 

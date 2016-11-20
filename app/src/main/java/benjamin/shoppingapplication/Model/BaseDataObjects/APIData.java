@@ -11,12 +11,12 @@ public abstract class APIData {
     private String pictureURL;
     private String productURL;
     private String storeName;
-    private Integer productNumber;
+    private String productNumber;
 
     /**
-     * This will take the json as a string and will parse the JSON accordingly
+     * This will take the data as a string and will parse the JSON accordingly
      */
-    public abstract void parseJSON(String json);
+    public abstract void parse(String data);
 
     @Override
     public abstract String toString();
@@ -27,7 +27,7 @@ public abstract class APIData {
      ****************************************/
 
     public APIData(String price, String name, String description, String pictureURL,
-                   String productURL, String storeName, Integer productNumber) {
+                   String productURL, String storeName, String productNumber) {
         this.price = price;
         this.name = name;
         this.description = description;
@@ -47,13 +47,14 @@ public abstract class APIData {
         this.productNumber = null;
     }
 
+
     /****************************************
      * Getters/Setters
      ****************************************/
 
-    public Integer getProductNumber() { return productNumber; }
+    public String getProductNumber() { return productNumber; }
 
-    public void setProductNumber(Integer productNumber) { this.productNumber = productNumber; }
+    public void setProductNumber(String productNumber) { this.productNumber = productNumber; }
 
     public String getPrice() {
         return price;
