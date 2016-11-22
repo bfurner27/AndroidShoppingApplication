@@ -1,5 +1,11 @@
 package benjamin.shoppingapplication.Model.BaseDataObjects;
 
+import android.util.Log;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+
 import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
 
 /**
@@ -7,6 +13,10 @@ import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
  */
 
 public class WalmartAPIData extends APIData {
+
+    // private data variables
+    private Boolean online;
+
     /*****************************************************
      * Constructors
      *****************************************************/
@@ -28,18 +38,41 @@ public class WalmartAPIData extends APIData {
     public WalmartAPIData(String price, String name, String description, String pictureURL,
                          String productURL, String productNumber) {
         super(price, name, description, pictureURL, productURL, "Walmart", productNumber);
+        online = null;
+    }
+
+    public WalmartAPIData (String jsonObject) {
+        setStoreName("Walmart");
+        parse(jsonObject);
     }
 
 
     @Override
     public void parse(String data) {
+        Gson parser = new Gson();
+        JsonObject item = parser.fromJson(data, new TypeToken<JsonObject>(){}.getType());
 
+        // parse the json into the data objects set aside
+        setName(item.get("name").getAsString());
+        setPrice(item.get("salePrice").getAsString());
+        setPictureURL(item.get("thumbnailImage").getAsString());
+        setProductNumber(item.get("itemId").getAsString());
+        setProductURL(item.get("productUrl").getAsString());
+        online = item.get("availableOnline").getAsBoolean();
+
+        Log.i("WalmartAPIData", "ParseData: \n-----------------\n" + toString());
     }
 
     @Override
     public String toString() {
-        String data = "";
-
+        String data =
+                "company: " + getStoreName() + "\n" +
+                "name:    " + getName() + "\n" +
+                "price:   " + getPrice() + "\n" +
+                "image:   " + getPictureURL() + "\n" +
+                "url:     " + getProductURL() + "\n" +
+                "num:     " + getProductNumber() + "\n" +
+                "online:  " + online + "\n";
         return data;
     }
 }

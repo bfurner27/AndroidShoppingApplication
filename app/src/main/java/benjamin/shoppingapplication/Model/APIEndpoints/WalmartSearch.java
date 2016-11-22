@@ -1,21 +1,13 @@
 package benjamin.shoppingapplication.Model.APIEndpoints;
 
-import android.app.DownloadManager;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.util.StringBuilderPrinter;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,29 +15,32 @@ import benjamin.shoppingapplication.Controller.APIKeyAccess;
 import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
 import benjamin.shoppingapplication.Model.BaseDataObjects.WalmartAPIData;
 import benjamin.shoppingapplication.Model.RequestData;
-import benjamin.shoppingapplication.View.MainActivity;
 
 /**
  * Created by Benjamin on 11/3/2016.
  */
 
-public class WalmartUPC extends AsyncTask<Void, Integer, String> {
+public class WalmartSearch extends AsyncTask<Void, Integer, String> {
     private RequestData requestData;
     private String requestURL;
 
-    public WalmartUPC(RequestData requestData) {
+    public WalmartSearch(RequestData requestData) {
         this.requestData = requestData;
     }
 
+
     @Override
     protected void onPreExecute() {
-        Log.i("WalmartUPC", "Entered the pre-execute section");
-        if (requestData == null || !requestData.hasUPC()) {
+        Log.i("WalmartSearch", "Entered the pre-execute section");
+        if (requestData == null || !requestData.hasSearch()) {
             cancel(true);
         } else {
-            requestURL = "http://api.walmartlabs.com/v1/items?" + "apiKey="
-                    + APIKeyAccess.getInstance().getAPIKey("walmart_key") + "&upc="
-                    + requestData.getUpc();
+            requestURL = "http://api.walmartlabs.com/v1/search?"
+                    + "query=" + formatSearchString(requestData.getSearch())
+                    + "&format=json"
+                    + "&apiKey=" + APIKeyAccess.getInstance().getAPIKey("walmart_key");
+
+            Log.i("WalmartSearch", "url:" + requestURL);
         }
     }
 
@@ -55,14 +50,14 @@ public class WalmartUPC extends AsyncTask<Void, Integer, String> {
      */
     @Override
     protected String doInBackground(Void... params) {
-        Log.i("WalmartUPC", "entered background");
+        Log.i("WalmartSearch", "entered background");
         RequestHelper rH = new RequestHelper();
         return rH.generateAPIResults(requestURL);
     }
 
     @Override
     protected void onPostExecute(String result) {
-        Log.i("WalmartUPC", "Entering the Post Execute Section");
+        Log.i("WalmartSearch", "Entering the Post Execute Section");
 
         Gson jsonParser = new Gson();
         JsonObject res = jsonParser.fromJson(result, new TypeToken<JsonObject>(){}.getType());
@@ -90,5 +85,11 @@ public class WalmartUPC extends AsyncTask<Void, Integer, String> {
     @Override
     protected void onCancelled(String result) {
         Log.e("ASYNCERROR", "The request data was not provided or the request failed");
+    }
+
+
+    private String formatSearchString(String uSearchString) {
+
+        return uSearchString.replace(" ", "+");
     }
 }

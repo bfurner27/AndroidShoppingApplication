@@ -46,6 +46,7 @@ public class AmazonAPIData extends APIData {
     }
 
     public AmazonAPIData(String dataToParse) {
+        setStoreName("Amazon");
         parse(dataToParse);
     }
 
@@ -54,7 +55,6 @@ public class AmazonAPIData extends APIData {
 
     @Override
     public void parse(String data) {
-        Log.i ("AmazonAPIData", "data: " + data);
         try {
             DocumentBuilderFactory xmlBuildFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder xmlBuilder = xmlBuildFactory.newDocumentBuilder();
@@ -96,7 +96,7 @@ public class AmazonAPIData extends APIData {
                 Log.e ("AmazonAPIData", "Parse: failed to find the price");
             }
 
-            Log.i ("AmazonAPIData", "DataParsedResult: " + toString());
+            //Log.i ("AmazonAPIData", "DataParsedResult: " + toString());
 
 
             tagList = item.getElementsByTagName("SmallImage");
@@ -110,7 +110,7 @@ public class AmazonAPIData extends APIData {
                 Log.e ("AmazonAPIData", "Parse: failed to find the pictureURL");
             }
 
-            Log.i ("AmazonAPIData", "DataParsedResult: " + toString());
+            //Log.i ("AmazonAPIData", "DataParsedResult: " + toString());
 
 
 
@@ -122,14 +122,18 @@ public class AmazonAPIData extends APIData {
         } catch (SAXException e) {
             Log.e("AmazonAPIData", "message: " + e.getMessage());
         }
+
+        Log.i("AmazonAPIData", "ParseData\n---------------\n" + toString());
     }
 
     @Override
     public String toString() {
-        String data = getName() + " - " + getProductNumber() + ": " + getPrice() + "Description: "
-                + getDescription() + "\nproductURL: " + getProductURL() + "\npictureURL: "
-                + getPictureURL();
-
+        String data =   "company: " + getStoreName() + "\n" +
+                        "name:    " + getName() + "\n" +
+                        "price:   " + getPrice() + "\n" +
+                        "image:   " + getPictureURL() + "\n" +
+                        "url:     " + getProductURL() + "\n" +
+                        "num:     " + getProductNumber() + "\n";
         return data;
     }
 }

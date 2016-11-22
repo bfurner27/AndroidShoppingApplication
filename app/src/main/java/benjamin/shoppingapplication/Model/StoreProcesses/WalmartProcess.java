@@ -1,5 +1,6 @@
 package benjamin.shoppingapplication.Model.StoreProcesses;
 
+import benjamin.shoppingapplication.Model.APIEndpoints.WalmartSearch;
 import benjamin.shoppingapplication.Model.APIEndpoints.WalmartUPC;
 import benjamin.shoppingapplication.Model.RequestData;
 
@@ -11,11 +12,12 @@ public class WalmartProcess implements StoreProcess {
 
     @Override
     public void retrieveData(RequestData requestData) {
-        //TODO request data will be sent in from the variable above but for now a temp variable will be added which needs to be removed
-
-        //TODO remove above item
-        WalmartUPC walmartUPC = new WalmartUPC();
-        walmartUPC.setRequestData(requestData);
+        WalmartUPC walmartUPC = new WalmartUPC(requestData);
         walmartUPC.execute(null, null, null);
+
+        // TODO actually hook this up to the system by ensureing that the search parameter is called if necessary or not called otherwise
+        WalmartSearch walmartSearch = new WalmartSearch(new RequestData(null, "Colgate Toothpaste", null));
+        walmartSearch.execute(null, null, null);
+
     }
 }
