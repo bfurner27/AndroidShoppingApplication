@@ -29,7 +29,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //TODO flush out the interface and remove the following line of code, this is just to get things rolling
-        RequestData requestData = new RequestData("035000521019");
+        RequestData requestData = new RequestData("035000521019"); // adds in the upc number
         MainController.getInstance().queryAPIs(requestData);
+    }
+
+
+    private void createSearchBox() {
+
     }
 }

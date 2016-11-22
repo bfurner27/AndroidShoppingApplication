@@ -10,8 +10,28 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="benjamin.shoppingapplication.View.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <EditText
+        android:id="@+id/search_text"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:textSize="15pt"
+        android:layout_alignParentTop="true"
+        android:hint="Search Value"/>
+
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="160dp"
+        android:textSize="15pt"
+        android:text="Search"
+        android:layout_below="@+id/search_text"
+        android:layout_alignParentLeft="true"
+        android:id="@+id/search_button" />
+    <Button
+        android:id="@+id/upc_button"
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/search_text"
+        android:textSize="15pt"
+        android:layout_toRightOf="@+id/search_button"
+        android:text="UPC" />
 </RelativeLayout>
