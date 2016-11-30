@@ -10,23 +10,35 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.google.android.gms.appdatasearch.GetRecentContextCall;
 import com.google.android.gms.vision.barcode.Barcode;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import benjamin.shoppingapplication.Controller.APIKeyAccess;
 import benjamin.shoppingapplication.Controller.BarcodeScannerHelper;
 import benjamin.shoppingapplication.Controller.MainController;
+import benjamin.shoppingapplication.Model.APIListData;
+import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
 import benjamin.shoppingapplication.Model.RequestData;
 import benjamin.shoppingapplication.R;
 
@@ -43,6 +55,10 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        final MainActivity mainActivity = this;       // used to ensure the controller has the necessary
+                                                // data
+
+
         bsh = new BarcodeScannerHelper();
 
         // here to ensure that the keys in the property file are available
@@ -56,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         // http://www.android4devs.com/2014/12/how-to-make-material-design-app.html
         toolbar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
+
 
         // pass in all the things that are only accessible from the MainActivity so they can be used
         // elsewhere
@@ -81,13 +98,56 @@ public class MainActivity extends AppCompatActivity {
                 EditText searchVal = (EditText) findViewById(R.id.search_text);
 
                 RequestData rd = new RequestData(null, searchVal.getText().toString(), null);
-                MainController.getInstance().queryAPIs(rd);
+                MainController.getInstance().queryAPIs(rd, mainActivity);
             }
         });
 
         //TODO flush out the interface and remove the following line of code, this is just to get things rolling
 
 
+    }
+
+
+    public void updateComparisonList() {
+        LinearLayout items = (LinearLayout) findViewById(R.id.items);
+        List<APIData> compareItems = APIListData.getInstance().getListData();
+
+
+        // perform this short sort to ensure the price is in the correct order
+        Collections.sort(compareItems, new Comparator<APIData>() {
+            @Override
+            public int compare(APIData o1, APIData o2) {
+                Double first = Double.valueOf(o1.getPrice().replaceAll("\\$", ""));
+                Double two = Double.valueOf(o2.getPrice().replaceAll("\\$", ""));
+                return first.compareTo(two);
+            }
+        });
+
+        items.removeAllViewsInLayout();
+
+        for (APIData item : compareItems) {
+            GridLayout itemGrid = new GridLayout(items.getContext());
+            itemGrid.setColumnCount(3);
+            itemGrid.setUseDefaultMargins(true);
+
+            // create the display
+            TextView itemDisplay = new TextView(getBaseContext());
+            itemDisplay.setText("Price: " + item.getPrice() + "\nStore: " + item.getStoreName());
+            itemDisplay.setTextSize(3, (float) 12.4);
+
+            // grab the picture based on the url so it can be displayed
+            if (item.getPictureURL() != null) {
+                ImageView image = new ImageView(getBaseContext());
+                URLPictureQuery upq = new URLPictureQuery(item.getPictureURL(), image);
+                upq.execute(null, null, null);
+                itemGrid.addView(image);
+            }
+
+            itemGrid.addView(itemDisplay);
+
+            // add the grid view to the items
+            items.addView(itemGrid);
+        }
     }
 
 
@@ -166,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("MainActivity", "Calling the main controller!");
                 RequestData rd = new RequestData(mBarcodes.get(i).rawValue);
 
-                MainController.getInstance().queryAPIs(rd);
+                MainController.getInstance().queryAPIs(rd, this);
             }
 
             try {

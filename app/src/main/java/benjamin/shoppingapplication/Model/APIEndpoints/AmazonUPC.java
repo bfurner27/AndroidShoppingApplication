@@ -41,6 +41,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import benjamin.shoppingapplication.Controller.APIKeyAccess;
+import benjamin.shoppingapplication.Controller.MainController;
 import benjamin.shoppingapplication.Model.APIListData;
 import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
 import benjamin.shoppingapplication.Model.BaseDataObjects.AmazonAPIData;
@@ -130,6 +131,7 @@ public class AmazonUPC extends AsyncTask<Void, Integer, String> {
 
             // this line updates the interface go between.
             APIListData.getInstance().updateListData(itemList);
+            MainController.getInstance().updateComparisonList();
 
         } catch (ParserConfigurationException e) {
             Log.e("AmazonUPC", "message: " + e.getMessage());

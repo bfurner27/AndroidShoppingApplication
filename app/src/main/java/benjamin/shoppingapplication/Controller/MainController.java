@@ -8,6 +8,7 @@ import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
 import benjamin.shoppingapplication.Model.RequestData;
 import benjamin.shoppingapplication.Model.StoreProcesses.StoreProcess;
 import benjamin.shoppingapplication.Model.StoreProcesses.StoreProcessFactory;
+import benjamin.shoppingapplication.View.MainActivity;
 
 /**
  * Created by Benjamin on 11/7/2016.
@@ -16,6 +17,7 @@ import benjamin.shoppingapplication.Model.StoreProcesses.StoreProcessFactory;
 public class MainController {
     private List<StoreProcess> stores = null;
     private static final MainController instance = new MainController();
+    private MainActivity mainActivity;
 
     /**
      * This will loop through all the available stores and will get a reference to each for later
@@ -32,7 +34,9 @@ public class MainController {
 
     }
 
-    public void queryAPIs(RequestData request) {
+    public void queryAPIs(RequestData request, MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+        APIListData.getInstance().resetData();
         //TODO flush out this function, remove all the contents once I am prepared to edit this section
         for (StoreProcess process : stores) {
             process.retrieveData(request); //TODO ensure that this is correct, I believe it will end up being like this in the end
@@ -41,6 +45,10 @@ public class MainController {
 
     public List<APIData> getListData() {
         return APIListData.getInstance().getListData();
+    }
+
+    public void updateComparisonList() {
+        mainActivity.updateComparisonList();
     }
 
     public static  MainController getInstance() {

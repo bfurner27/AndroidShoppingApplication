@@ -24,6 +24,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import benjamin.shoppingapplication.Controller.MainController;
 import benjamin.shoppingapplication.Model.APIListData;
 import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
 import benjamin.shoppingapplication.Model.BaseDataObjects.AmazonAPIData;
@@ -109,6 +110,7 @@ public class AmazonSearch extends AsyncTask<Void, Integer, String> {
             }
 
             APIListData.getInstance().updateListData(itemList);
+            MainController.getInstance().updateComparisonList();
         } catch (SAXException e) {
             Log.e("AmazonSearch", e.getMessage());
         } catch (IOException e) {

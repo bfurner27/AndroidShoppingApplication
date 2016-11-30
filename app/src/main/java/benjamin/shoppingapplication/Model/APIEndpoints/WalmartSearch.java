@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import benjamin.shoppingapplication.Controller.APIKeyAccess;
+import benjamin.shoppingapplication.Controller.MainController;
+import benjamin.shoppingapplication.Model.APIListData;
 import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
 import benjamin.shoppingapplication.Model.BaseDataObjects.WalmartAPIData;
 import benjamin.shoppingapplication.Model.RequestData;
@@ -73,6 +75,9 @@ public class WalmartSearch extends AsyncTask<Void, Integer, String> {
             walmartItems.add(new WalmartAPIData(jsonItem));
 
         }
+
+        APIListData.getInstance().updateListData(walmartItems);
+        MainController.getInstance().updateComparisonList();
 
 
     }
