@@ -17,4 +17,28 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="item_comparison_template_overall" >
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:orientation">horizontal</item>
+        <!--<item name="android:colorBackground">@color/item_background</item>-->
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:padding">7dp</item>
+    </style>
+
+
+    <style name="item_comparison_template_text" >
+        <item name="android:textSize">7pt</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">150dp</item>
+        <item name="android:paddingLeft">5dp</item>
+    </style>
+
+    <style name="item_comparison_template_image" >
+        <item name="android:layout_height">120dp</item>
+        <item name="android:layout_width">120dp</item>
+        <item name="android:background">@color/white</item>
+    </style>
+
+
 </resources>

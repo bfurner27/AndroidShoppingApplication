@@ -38,13 +38,13 @@ public abstract class APIData {
     }
 
     public APIData() {
-        this.price = null;
-        this.name = null;
-        this.description = null;
-        this.pictureURL = null;
-        this.productURL = null;
-        this.storeName = null;
-        this.productNumber = null;
+        this.price = "999999999999999999999.99";
+        this.name = "";
+        this.description = "";
+        this.pictureURL = "";
+        this.productURL = "";
+        this.storeName = "";
+        this.productNumber = "";
     }
 
 

@@ -82,6 +82,10 @@ public class AmazonSearch extends AsyncTask<Void, Integer, String> {
     protected void onPostExecute(String result) {
         Log.i("AmazonSearch", "Entering the Post Execute");
         //TODO replace this with a log statement that actually has information not just the result
+
+        if (result.equals(null) || result.equals("")) {
+            cancel(true);
+        }
         try {
             DocumentBuilderFactory xmlBuildFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder xmlBuilder = xmlBuildFactory.newDocumentBuilder();

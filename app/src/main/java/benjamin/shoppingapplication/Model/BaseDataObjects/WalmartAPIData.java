@@ -42,7 +42,8 @@ public class WalmartAPIData extends APIData {
     }
 
     public WalmartAPIData (String jsonObject) {
-        setStoreName("Walmart");
+        super("9999999999999.99", "", "", "", "", "Walmart", "");
+        online = false;
         parse(jsonObject);
     }
 
@@ -53,12 +54,30 @@ public class WalmartAPIData extends APIData {
         JsonObject item = parser.fromJson(data, new TypeToken<JsonObject>(){}.getType());
 
         // parse the json into the data objects set aside
-        setName(item.get("name").getAsString());
-        setPrice(item.get("salePrice").getAsString());
-        setPictureURL(item.get("thumbnailImage").getAsString());
-        setProductNumber(item.get("itemId").getAsString());
-        setProductURL(item.get("productUrl").getAsString());
-        online = item.get("availableOnline").getAsBoolean();
+        // set up the checks to ensure that the data does exist in the json object
+        if (item.get("name") != null) {
+            setName(item.get("name").getAsString());
+        }
+
+        if (item.get("salePrice") != null) {
+            setPrice(item.get("salePrice").getAsString());
+        }
+
+        if (item.get("thumbnailImage") != null) {
+            setPictureURL(item.get("thumbnailImage").getAsString());
+        }
+
+        if (item.get("itemId") != null) {
+            setProductNumber(item.get("itemId").getAsString());
+        }
+
+        if (item.get("productUrl") != null) {
+            setProductURL(item.get("productUrl").getAsString());
+        }
+
+        if (item.get("availableOnline") != null) {
+            online = item.get("availableOnline").getAsBoolean();
+        }
 
         Log.i("WalmartAPIData", "ParseData: \n-----------------\n" + toString());
     }

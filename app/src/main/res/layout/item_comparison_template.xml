@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/item_comparison_template_overall">
+
+    <ImageView
+        android:id="@+id/item_image"
+        style="@style/item_comparison_template_image" />
+
+    <TextView
+        android:id="@+id/item_text"
+        style="@style/item_comparison_template_text" />
+
+    <TextView
+        android:id="@+id/hiddenURL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:text=""/>
+
+</LinearLayout>

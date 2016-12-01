@@ -46,7 +46,7 @@ public class AmazonAPIData extends APIData {
     }
 
     public AmazonAPIData(String dataToParse) {
-        setStoreName("Amazon");
+        super("9999999999999.99", "", "", "", "", "Amazon", "");
         parse(dataToParse);
     }
 

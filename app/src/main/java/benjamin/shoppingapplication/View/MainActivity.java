@@ -1,5 +1,6 @@
 package benjamin.shoppingapplication.View;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,6 +16,8 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,6 +30,8 @@ import android.widget.TextView;
 
 import com.google.android.gms.appdatasearch.GetRecentContextCall;
 import com.google.android.gms.vision.barcode.Barcode;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private BarcodeScannerHelper bsh;
     private List<Barcode> mBarcodes;
+    private APIData mTempData;
 
     /**
      * constructor/start for the entire program
@@ -93,16 +99,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view) {
-                Log.i("MainActivity", "Made it into the search button");
                 //TODO split this into smaller code fragments
                 EditText searchVal = (EditText) findViewById(R.id.search_text);
 
-                RequestData rd = new RequestData(null, searchVal.getText().toString(), null);
-                MainController.getInstance().queryAPIs(rd, mainActivity);
+                if (!searchVal.getText().toString().equals("")) {
+                    RequestData rd = new RequestData(null, searchVal.getText().toString(), null);
+                    MainController.getInstance().queryAPIs(rd, mainActivity);
+                }
             }
         });
 
-        //TODO flush out the interface and remove the following line of code, this is just to get things rolling
 
 
     }
@@ -125,29 +131,50 @@ public class MainActivity extends AppCompatActivity {
 
         items.removeAllViewsInLayout();
 
-        for (APIData item : compareItems) {
-            GridLayout itemGrid = new GridLayout(items.getContext());
-            itemGrid.setColumnCount(3);
-            itemGrid.setUseDefaultMargins(true);
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-            // create the display
-            TextView itemDisplay = new TextView(getBaseContext());
-            itemDisplay.setText("Price: " + item.getPrice() + "\nStore: " + item.getStoreName());
-            itemDisplay.setTextSize(3, (float) 12.4);
+        int i = 0;
+        for (APIData item : compareItems) {
+            View item_template = inflater.inflate(R.layout.item_comparison_template, null);
+
+            TextView hiddenURL = (TextView) item_template.findViewById(R.id.hiddenURL);
+
+            if (!item.getProductURL().equals("")) {
+                hiddenURL.setText(item.getProductURL());
+            }
+
+            item_template.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView hiddenView = (TextView) v.findViewById(R.id.hiddenURL);
+                    String url = hiddenView.getText().toString();
+                    if (!url.equals("")) {
+                        Log.i("MainActivity", "URL: " + url);
+                        Uri uri = Uri.parse(url);
+                        Intent openURL = new Intent(Intent.ACTION_VIEW, uri);
+                        startActivity(openURL);
+                    }
+                }
+            });
+
+            TextView text = (TextView) item_template.findViewById(R.id.item_text);
+            text.setText("Title: " + item.getName() + "\nPrice: " + item.getPrice() + "\nStore: " + item.getStoreName());
 
             // grab the picture based on the url so it can be displayed
             if (item.getPictureURL() != null) {
-                ImageView image = new ImageView(getBaseContext());
+                ImageView image = (ImageView) item_template.findViewById(R.id.item_image);
                 URLPictureQuery upq = new URLPictureQuery(item.getPictureURL(), image);
                 upq.execute(null, null, null);
-                itemGrid.addView(image);
             }
 
-            itemGrid.addView(itemDisplay);
+            if (i % 2 == 1) {
+                item_template.setBackgroundColor(getResources().getColor(R.color.white));
+            }
 
-            // add the grid view to the items
-            items.addView(itemGrid);
+            items.addView(item_template);
+            i++;
         }
+
     }
 
 
