@@ -21,7 +21,7 @@ public class RequestHelper {
      * @param requestURL - the url of the request to make
      * @return
      */
-    public String generateAPIResults (String requestURL) {
+    public String generateAPIResults (String requestURL) throws Exception {
         String result = null;
 
         try {
@@ -55,10 +55,12 @@ public class RequestHelper {
             //TODO remove the stack trace once satisfied it is working
             e.printStackTrace();
             Log.e("RequestHelper", "Failed to create the URL as expected");
+            throw new Exception(e.getMessage());
         } catch (IOException e) {
             //TODO remove the stack trace once satisfied it is working
             e.printStackTrace();
             Log.e("RequestHelper", "Failed to send the url through the connection and the file failed");
+            throw new Exception(e.getMessage());
         }
 
         return result;

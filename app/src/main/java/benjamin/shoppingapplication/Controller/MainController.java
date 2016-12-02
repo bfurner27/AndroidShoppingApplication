@@ -34,6 +34,14 @@ public class MainController {
 
     }
 
+    /**
+     * QueryAPI's is the first point of contact within the main activity. for this reason it is also
+     * used to initialize the mainActivities data which will be used later when the APIEnpoints need
+     * to notify the main activity what is happening
+     * @param request - The data that will be used int he request. Obtained from the UI
+     * @param mainActivity - The reference to the main data so that communication can happen both
+     *                     ways
+     */
     public void queryAPIs(RequestData request, MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         APIListData.getInstance().resetData();

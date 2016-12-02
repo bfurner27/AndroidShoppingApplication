@@ -11,27 +11,18 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.google.android.gms.appdatasearch.GetRecentContextCall;
 import com.google.android.gms.vision.barcode.Barcode;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,16 +52,14 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        final MainActivity mainActivity = this;       // used to ensure the controller has the necessary
-                                                // data
-
-
+        // initialize variables that will be used later in the program
+        final MainActivity mainActivity = this; // reference to this object
         bsh = new BarcodeScannerHelper();
 
         // here to ensure that the keys in the property file are available
         APIKeyAccess.getInstance().setPropertyFile(getBaseContext());
-        Log.i("MainActivity", "Context: " + getBaseContext().toString());
 
+        // sets up the main activity and puts it in the main threads content view
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -79,9 +68,16 @@ public class MainActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
 
+        // set the listeners for the buttons
+        setBarcodeScannerButtonOnClickListener();
+        setSearchButtonOnClickListener(mainActivity);
+    }
 
-        // pass in all the things that are only accessible from the MainActivity so they can be used
-        // elsewhere
+    /**
+     * Sets the barcode scanners on click listener, this will require that there is code accessible
+     * by the main activity so everything works correctly
+     */
+    public void setBarcodeScannerButtonOnClickListener() {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
 
@@ -91,10 +87,16 @@ public class MainActivity extends AppCompatActivity {
                 // the rest happens in the onActivityResult
             }
         });
+    }
 
 
+    /***
+     * sets up the search buttons onClick listener so that items can be searched
+     * @param mainActivity - this is a reference to the this object which needs to be accessed
+     *                     from inside the listener, this is why it is final
+     */
+    public void setSearchButtonOnClickListener(final MainActivity mainActivity) {
         Button searchButton = (Button) findViewById(R.id.search_button);
-
         searchButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -108,19 +110,35 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-
-
     }
 
 
+    /***
+     * Acts as the listener for the APIEndpoints, once they have completed the requests and, parsed
+     * the data they will call this function
+     */
     public void updateComparisonList() {
+        // makes the error message visible if there was an error in the parsing
+        errorMessageVisibilityToggle();
+
+        // reset the view so that it is clear for when cards are added later
         LinearLayout items = (LinearLayout) findViewById(R.id.items);
+        items.removeAllViewsInLayout();
+        
         List<APIData> compareItems = APIListData.getInstance().getListData();
+        sortItemListByPrice(compareItems);
+        buildItemCards(items, compareItems);
 
+    }
 
+    /*****
+     * Sorts the list by price to ensure that the lowest priced items are at the top of the display
+     * This also ensures that the lowest priced items are also not dependant on the store
+     * @param itemsList - the items to be sorted
+     */
+    private void sortItemListByPrice (List<APIData> itemsList) {
         // perform this short sort to ensure the price is in the correct order
-        Collections.sort(compareItems, new Comparator<APIData>() {
+        Collections.sort(itemsList, new Comparator<APIData>() {
             @Override
             public int compare(APIData o1, APIData o2) {
                 Double first = Double.valueOf(o1.getPrice().replaceAll("\\$", ""));
@@ -128,37 +146,31 @@ public class MainActivity extends AppCompatActivity {
                 return first.compareTo(two);
             }
         });
+    }
 
-        items.removeAllViewsInLayout();
 
+    /****
+     * Builds the cards that will be inserted into the container, it needs the data so it can insert
+     * the data accordingly
+     * @param container - the container to store all the cards in
+     * @param compareItems - the data that will be used to populate the added cards
+     */
+    private void buildItemCards (LinearLayout container, List<APIData> compareItems) {
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         int i = 0;
         for (APIData item : compareItems) {
             View item_template = inflater.inflate(R.layout.item_comparison_template, null);
 
-            TextView hiddenURL = (TextView) item_template.findViewById(R.id.hiddenURL);
 
             if (!item.getProductURL().equals("")) {
-                hiddenURL.setText(item.getProductURL());
+                enableItemsOnClickLister(item_template, item);
             }
 
-            item_template.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TextView hiddenView = (TextView) v.findViewById(R.id.hiddenURL);
-                    String url = hiddenView.getText().toString();
-                    if (!url.equals("")) {
-                        Log.i("MainActivity", "URL: " + url);
-                        Uri uri = Uri.parse(url);
-                        Intent openURL = new Intent(Intent.ACTION_VIEW, uri);
-                        startActivity(openURL);
-                    }
-                }
-            });
-
+            // builds the text view to have the desired content information
             TextView text = (TextView) item_template.findViewById(R.id.item_text);
-            text.setText("Title: " + item.getName() + "\nPrice: " + item.getPrice() + "\nStore: " + item.getStoreName());
+            text.setText("Title: " + item.getName() + "\nPrice: " + item.getPrice() + "\nStore: "
+                    + item.getStoreName());
 
             // grab the picture based on the url so it can be displayed
             if (item.getPictureURL() != null) {
@@ -171,10 +183,51 @@ public class MainActivity extends AppCompatActivity {
                 item_template.setBackgroundColor(getResources().getColor(R.color.white));
             }
 
-            items.addView(item_template);
+            container.addView(item_template);
             i++;
         }
+    }
 
+
+    /*****
+     * This will enable the on click listener for the view based on if the url is available or not
+     * @param item_template - the template main view that needs to have the listener set
+     * @param item - the data with the url that will be input into the hidden field so the lister
+     *               will be able to access it
+     */
+    private void enableItemsOnClickLister (View item_template, APIData item) {
+        // this will be used so when the listener is making the url request it will have access
+        // to the correct url
+        TextView hiddenURL = (TextView) item_template.findViewById(R.id.hiddenURL);
+        hiddenURL.setText(item.getProductURL());
+
+        // sets up the listener - this listener will use an intent to open up a browser with the url
+        item_template.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView hiddenView = (TextView) v.findViewById(R.id.hiddenURL);
+                String url = hiddenView.getText().toString();
+                if (!url.equals("")) {
+                    Log.i("MainActivity", "URL: " + url);
+                    Uri uri = Uri.parse(url);
+                    Intent openURL = new Intent(Intent.ACTION_VIEW, uri);
+                    startActivity(openURL);
+                }
+            }
+        });
+    }
+
+    /*****
+     * This function will check to see if the error flag has been set to true and will make visible
+     * the error message
+     */
+    private void errorMessageVisibilityToggle() {
+        TextView errorMessage = (TextView) findViewById(R.id.error_message);
+        if (APIListData.getInstance().getError()) {
+            errorMessage.setVisibility(errorMessage.VISIBLE);
+        } else {
+            errorMessage.setVisibility(errorMessage.GONE);
+        }
     }
 
 
@@ -244,7 +297,11 @@ public class MainActivity extends AppCompatActivity {
             //myImageView.setImageBitmap(photoBitmap);
 
             SparseArray<Barcode> barcodes = bsh.readBarcode(photoBitmap, getApplicationContext());
-            mBarcodes = bsh.validateBarcodes(barcodes);
+
+            // ensure that the result of read barcode is not null
+            if (barcodes != null) {
+                mBarcodes = bsh.validateBarcodes(barcodes);
+            }
 
             Log.i("MainActivity", "Number of valid barcodes: " + mBarcodes.size());
 

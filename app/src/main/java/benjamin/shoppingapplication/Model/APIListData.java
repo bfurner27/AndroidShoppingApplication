@@ -11,11 +11,13 @@ import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
 
 public class APIListData {
     private List<APIData> listData;
+    private boolean error;
     private static final APIListData instance = new APIListData();
 
     private APIListData() {
         // defies creating an instance
         listData = new ArrayList<>();
+        error = false;
     }
 
     public static final APIListData getInstance() {
@@ -37,6 +39,17 @@ public class APIListData {
     }
 
     public void resetData() {
+        error = false;
         listData.clear();
+    }
+
+    public void setErrorFlag() {
+        this.error = true;
+    }
+
+    public void clearErrorFlag() { this.error = false; }
+
+    public boolean getError() {
+        return error;
     }
 }

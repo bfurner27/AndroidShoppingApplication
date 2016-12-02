@@ -6,4 +6,5 @@
     <color name="item_background">#97919191</color>
     <color name="white">#FFFFFF</color>
     <color name="orange">#d9f25100</color>
+    <color name="error">#FF0000</color>
 </resources>

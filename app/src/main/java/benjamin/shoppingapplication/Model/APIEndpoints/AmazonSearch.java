@@ -49,7 +49,8 @@ public class AmazonSearch extends AsyncTask<Void, Integer, String> {
     @Override
     protected void onPreExecute() {
         if (requestData == null || !requestData.hasSearch()) {
-            cancel(true);
+            APIListData.getInstance().setErrorFlag();
+            return;
         } else {
             String searchParams = "http://webservices.amazon.com/onca/xml?" +
                     "Service=AWSECommerceService&" +
@@ -75,7 +76,12 @@ public class AmazonSearch extends AsyncTask<Void, Integer, String> {
         RequestHelper rh = new RequestHelper();
 
         Log.i("AmazonSearch", "Exiting the thread");
-        return rh.generateAPIResults(requestURL);
+        try {
+            return rh.generateAPIResults(requestURL);
+        } catch (Exception e) {
+            Log.e("AmazonUPC", e.getStackTrace().toString());
+            return null;
+        }
     }
 
     @Override
@@ -83,47 +89,64 @@ public class AmazonSearch extends AsyncTask<Void, Integer, String> {
         Log.i("AmazonSearch", "Entering the Post Execute");
         //TODO replace this with a log statement that actually has information not just the result
 
-        if (result.equals(null) || result.equals("")) {
-            cancel(true);
-        }
-        try {
-            DocumentBuilderFactory xmlBuildFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder xmlBuilder = xmlBuildFactory.newDocumentBuilder();
+        if (result == null || result.equals(null) || result.equals("")) {
+            // ensure if any of these cases are true that it returns and no further execution is
+            // attempted
+            APIListData.getInstance().setErrorFlag();
+        } else {
 
-            InputStream inStream = new ByteArrayInputStream(result.getBytes("UTF-8"));
-            Document xml = xmlBuilder.parse(inStream);
+            try {
+                DocumentBuilderFactory xmlBuildFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder xmlBuilder = xmlBuildFactory.newDocumentBuilder();
 
-            NodeList listItems = xml.getElementsByTagName("Item");
+                InputStream inStream = new ByteArrayInputStream(result.getBytes("UTF-8"));
+                Document xml = xmlBuilder.parse(inStream);
 
-            List<APIData> itemList = new ArrayList<>();
 
-            for (int i = 0; i < listItems.getLength(); i++) {
-                Node item = listItems.item(i);
+                NodeList errors = xml.getElementsByTagName("Error");
+                if (errors.getLength() > 0) {
+                    String errorMessage = "";
+                    for (int i = 0; i < errors.getLength(); i++) {
+                        Node error = errors.item(i);
+                        errorMessage += error.getTextContent();
+                    }
+                    Log.e("AmazonSearch", "Error: " + errorMessage);
+                    cancel(true);
+                } else {
 
-                // found this code at:
-                // http://stackoverflow.com/questions/2223020/convert-an-org-w3c-dom-node-into-a-string
-                StringWriter writer = new StringWriter();
-                Transformer transformer = TransformerFactory.newInstance().newTransformer();
-                transformer.transform(new DOMSource(item), new StreamResult(writer));
-                String output = writer.toString();
-                // end of code
+                    NodeList listItems = xml.getElementsByTagName("Item");
 
-                AmazonAPIData aAD = new AmazonAPIData(output);
+                    List<APIData> itemList = new ArrayList<>();
 
-                itemList.add(aAD);
+                    for (int i = 0; i < listItems.getLength(); i++) {
+                        Node item = listItems.item(i);
+
+                        // found this code at:
+                        // http://stackoverflow.com/questions/2223020/convert-an-org-w3c-dom-node-into-a-string
+                        StringWriter writer = new StringWriter();
+                        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                        transformer.transform(new DOMSource(item), new StreamResult(writer));
+                        String output = writer.toString();
+                        // end of code
+
+                        AmazonAPIData aAD = new AmazonAPIData(output);
+
+                        itemList.add(aAD);
+                    }
+
+                    APIListData.getInstance().updateListData(itemList);
+                }
+            } catch (SAXException e) {
+                Log.e("AmazonSearch", e.getMessage());
+            } catch (IOException e) {
+                Log.e("AmazonSearch", e.getMessage());
+            } catch (ParserConfigurationException e) {
+                Log.e("AmazonSearch", e.getMessage());
+            } catch (TransformerException e) {
+                Log.e("AmazonSearch", e.getMessage());
             }
-
-            APIListData.getInstance().updateListData(itemList);
-            MainController.getInstance().updateComparisonList();
-        } catch (SAXException e) {
-            Log.e("AmazonSearch", e.getMessage());
-        } catch (IOException e) {
-            Log.e("AmazonSearch", e.getMessage());
-        } catch (ParserConfigurationException e) {
-            Log.e("AmazonSearch", e.getMessage());
-        } catch (TransformerException e) {
-            Log.e("AmazonSearch", e.getMessage());
         }
+        MainController.getInstance().updateComparisonList();
     }
 
     @Override

@@ -90,63 +90,84 @@ public class AmazonUPC extends AsyncTask<Void, Integer, String> {
         Log.i("AmazonUPC", "Entering the background thread");
         RequestHelper rH = new RequestHelper();
         Log.i("AmazonUPC", "Leaving the background thread");
-        return rH.generateAPIResults(requestURL);
+
+        try {
+            return rH.generateAPIResults(requestURL);
+        } catch (Exception e) {
+            Log.e("AmazonUPC", e.getStackTrace().toString());
+            return null;
+        }
     }
 
     @Override
     protected void onPostExecute(String result) {
         Log.i("Amazon", "Entered post execute section");
-        //TODO come up with a better log statement or no log statement at all!
+        if (result == null) {
+            // ensure that if an error occurred that no further execution happens
+            APIListData.getInstance().setErrorFlag();
+        } else {
 
-        // parse the data into the separate amazon data objects
-        try {
-            DocumentBuilderFactory xmlBuildFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder xmlBuilder = xmlBuildFactory.newDocumentBuilder();
+            // parse the data into the separate amazon data objects
+            try {
+                DocumentBuilderFactory xmlBuildFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder xmlBuilder = xmlBuildFactory.newDocumentBuilder();
 
-            InputStream inStream = new ByteArrayInputStream(result.getBytes("UTF-8"));
-            Document xml = xmlBuilder.parse(inStream);
+                InputStream inStream = new ByteArrayInputStream(result.getBytes("UTF-8"));
+                Document xml = xmlBuilder.parse(inStream);
 
-           // Element root = xml.getDocumentElement();
+                // Element root = xml.getDocumentElement();
 
-            NodeList listItems = xml.getElementsByTagName("Item");
+                NodeList errors = xml.getElementsByTagName("Error");
+                if (errors.getLength() > 0) {
+                    String errorMessage = "";
+                    for (int i = 0; i < errors.getLength(); i++) {
+                        Node error = errors.item(i);
+                        errorMessage += error.getTextContent();
+                    }
+                    Log.e("AmazonSearch", "Error: " + errorMessage);
+                } else {
 
-            List<APIData> itemList = new ArrayList<>();
+                    NodeList listItems = xml.getElementsByTagName("Item");
 
-            for (int i = 0; i < listItems.getLength(); i++) {
-                Node item = listItems.item(i);
+                    List<APIData> itemList = new ArrayList<>();
 
-                // found this code at:
-                // http://stackoverflow.com/questions/2223020/convert-an-org-w3c-dom-node-into-a-string
-                StringWriter writer = new StringWriter();
-                Transformer transformer = TransformerFactory.newInstance().newTransformer();
-                transformer.transform(new DOMSource(item), new StreamResult(writer));
-                String output = writer.toString();
-                // end of code
+                    for (int i = 0; i < listItems.getLength(); i++) {
+                        Node item = listItems.item(i);
 
-                AmazonAPIData aAD = new AmazonAPIData(output);
+                        // found this code at:
+                        // http://stackoverflow.com/questions/2223020/convert-an-org-w3c-dom-node-into-a-string
+                        StringWriter writer = new StringWriter();
+                        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                        transformer.transform(new DOMSource(item), new StreamResult(writer));
+                        String output = writer.toString();
+                        // end of code
 
-                itemList.add(aAD);
+                        AmazonAPIData aAD = new AmazonAPIData(output);
+
+                        itemList.add(aAD);
+                    }
+
+
+                    // this line updates the interface go between.
+                    APIListData.getInstance().updateListData(itemList);
+                }
+
+            } catch (ParserConfigurationException e) {
+                Log.e("AmazonUPC", "message: " + e.getMessage());
+                e.printStackTrace();
+            } catch (IOException e) {
+                Log.e("AmazonUPC", "message: " + e.getMessage());
+                e.printStackTrace();
+            } catch (SAXException e) {
+                Log.e("AmazonUPC", "message: " + e.getMessage());
+                e.printStackTrace();
+            } catch (TransformerException e) {
+                Log.e("AmazonUPC", "message: " + e.getMessage());
+                e.printStackTrace();
             }
+        }   // end else
 
-
-            // this line updates the interface go between.
-            APIListData.getInstance().updateListData(itemList);
-            MainController.getInstance().updateComparisonList();
-
-        } catch (ParserConfigurationException e) {
-            Log.e("AmazonUPC", "message: " + e.getMessage());
-            e.printStackTrace();
-        } catch (IOException e) {
-            Log.e("AmazonUPC", "message: " + e.getMessage());
-            e.printStackTrace();
-        } catch (SAXException e) {
-            Log.e("AmazonUPC", "message: " + e.getMessage());
-            e.printStackTrace();
-        } catch (TransformerException e) {
-            Log.e("AmazonUPC", "message: " + e.getMessage());
-            e.printStackTrace();
-        }
-
+        MainController.getInstance().updateComparisonList();
     }
 
     @Override

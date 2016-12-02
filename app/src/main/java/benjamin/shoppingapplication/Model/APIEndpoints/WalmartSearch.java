@@ -54,32 +54,41 @@ public class WalmartSearch extends AsyncTask<Void, Integer, String> {
     protected String doInBackground(Void... params) {
         Log.i("WalmartSearch", "entered background");
         RequestHelper rH = new RequestHelper();
-        return rH.generateAPIResults(requestURL);
+        try {
+            return rH.generateAPIResults(requestURL);
+        } catch (Exception e) {
+            Log.e("WalmartSearch", "Error: failed to open the connection or read the contents");
+            return null;
+        }
     }
 
     @Override
     protected void onPostExecute(String result) {
         Log.i("WalmartSearch", "Entering the Post Execute Section");
 
-        Gson jsonParser = new Gson();
-        JsonObject res = jsonParser.fromJson(result, new TypeToken<JsonObject>(){}.getType());
+        if (result == null) {
+            APIListData.getInstance().setErrorFlag();
+        } else {
 
-        // parse the object into an array
-        JsonArray items = res.get("items").getAsJsonArray();
+            Gson jsonParser = new Gson();
+            JsonObject res = jsonParser.fromJson(result, new TypeToken<JsonObject>() {
+            }.getType());
 
-        List<APIData> walmartItems = new ArrayList<>();
+            // parse the object into an array
+            JsonArray items = res.get("items").getAsJsonArray();
 
-        for (int i = 0; i < items.size(); i++) {
-            JsonObject item = items.get(i).getAsJsonObject();
-            String jsonItem = jsonParser.toJson(item);
-            walmartItems.add(new WalmartAPIData(jsonItem));
+            List<APIData> walmartItems = new ArrayList<>();
 
+            for (int i = 0; i < items.size(); i++) {
+                JsonObject item = items.get(i).getAsJsonObject();
+                String jsonItem = jsonParser.toJson(item);
+                walmartItems.add(new WalmartAPIData(jsonItem));
+
+            }
+
+            APIListData.getInstance().updateListData(walmartItems);
         }
-
-        APIListData.getInstance().updateListData(walmartItems);
         MainController.getInstance().updateComparisonList();
-
-
     }
 
     @Override
