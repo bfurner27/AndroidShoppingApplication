@@ -16,13 +16,17 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.vision.barcode.Barcode;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +37,7 @@ import java.util.List;
 import benjamin.shoppingapplication.Controller.APIKeyAccess;
 import benjamin.shoppingapplication.Controller.BarcodeScannerHelper;
 import benjamin.shoppingapplication.Controller.MainController;
+import benjamin.shoppingapplication.Controller.TextCommandController;
 import benjamin.shoppingapplication.Model.APIListData;
 import benjamin.shoppingapplication.Model.BaseDataObjects.APIData;
 import benjamin.shoppingapplication.Model.RequestData;
@@ -59,9 +64,16 @@ public class MainActivity extends AppCompatActivity {
         // here to ensure that the keys in the property file are available
         APIKeyAccess.getInstance().setPropertyFile(getBaseContext());
 
+        // TODO set the focus to another element besides the text box
+        // TODO ensure that the search button is positioned to not take up as much room perhaps an arrow to the side of the text box would be adequate
+
+
         // sets up the main activity and puts it in the main threads content view
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
+        mainLayout.clearFocus();
 
         // code retrieved from:
         // http://www.android4devs.com/2014/12/how-to-make-material-design-app.html
@@ -101,12 +113,38 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view) {
-                //TODO split this into smaller code fragments
                 EditText searchVal = (EditText) findViewById(R.id.search_text);
 
+                /*********
+                 * This code will hide the keyboard view from the user after they have clicked on
+                 * the search button
+                 * retrieved code from:
+                 * http://stackoverflow.com/questions/2342620/how-to-hide-keyboard-after-typing-in-
+                 * edittext-in-android*/
+                InputMethodManager inputManager =
+                        (InputMethodManager) mainActivity.
+                                getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputManager.hideSoftInputFromWindow(
+                        mainActivity.getCurrentFocus().getWindowToken(),
+                        InputMethodManager.HIDE_NOT_ALWAYS);
+                /***********/
+
                 if (!searchVal.getText().toString().equals("")) {
-                    RequestData rd = new RequestData(null, searchVal.getText().toString(), null);
-                    MainController.getInstance().queryAPIs(rd, mainActivity);
+                    String searchString = searchVal.getText().toString();
+                    String command = TextCommandController
+                            .getInstance()
+                            .decideAction(searchString);
+
+                    if (command.equals("camera")) {
+                        dispatchTakePictureIntent();
+                    } else {
+                        if (command.equals("search")) {
+                            searchString = TextCommandController.getInstance().generateNewSearchValue();
+                        }
+
+                        RequestData rd = new RequestData(null, searchString, null);
+                        MainController.getInstance().queryAPIs(rd, mainActivity);
+                    }
                 }
             }
         });
@@ -128,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
         List<APIData> compareItems = APIListData.getInstance().getListData();
         sortItemListByPrice(compareItems);
         buildItemCards(items, compareItems);
+        items.requestFocus();
 
     }
 
@@ -234,17 +273,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-
-
-
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private String mCurrentPhotoPath;
     private Uri photoURI;
-
-
 
     /**
      * This function will dispatch the event that will start up the camera app to take the picture

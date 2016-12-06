@@ -21,7 +21,6 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:orientation">horizontal</item>
-        <!--<item name="android:colorBackground">@color/item_background</item>-->
         <item name="android:background">@color/colorPrimary</item>
         <item name="android:padding">7dp</item>
     </style>
