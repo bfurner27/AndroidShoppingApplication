@@ -1,5 +1,6 @@
 package benjamin.shoppingapplication.View;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -7,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.speech.RecognizerIntent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +25,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.vision.barcode.Barcode;
 
@@ -30,9 +33,11 @@ import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import benjamin.shoppingapplication.Controller.APIKeyAccess;
 import benjamin.shoppingapplication.Controller.BarcodeScannerHelper;
@@ -64,9 +69,6 @@ public class MainActivity extends AppCompatActivity {
         // here to ensure that the keys in the property file are available
         APIKeyAccess.getInstance().setPropertyFile(getBaseContext());
 
-        // TODO set the focus to another element besides the text box
-        // TODO ensure that the search button is positioned to not take up as much room perhaps an arrow to the side of the text box would be adequate
-
 
         // sets up the main activity and puts it in the main threads content view
         super.onCreate(savedInstanceState);
@@ -83,6 +85,21 @@ public class MainActivity extends AppCompatActivity {
         // set the listeners for the buttons
         setBarcodeScannerButtonOnClickListener();
         setSearchButtonOnClickListener(mainActivity);
+        setVoiceButtonOnClickListener();
+    }
+
+    /***********
+     *
+     */
+    public void setVoiceButtonOnClickListener () {
+        Button voiceBtn = (Button) findViewById(R.id.voice_btn);
+        voiceBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("MainActivity", "I made it into the voice listener");
+                speechRecognizerIntent();
+            }
+        });
     }
 
     /**
@@ -131,20 +148,9 @@ public class MainActivity extends AppCompatActivity {
 
                 if (!searchVal.getText().toString().equals("")) {
                     String searchString = searchVal.getText().toString();
-                    String command = TextCommandController
-                            .getInstance()
-                            .decideAction(searchString);
 
-                    if (command.equals("camera")) {
-                        dispatchTakePictureIntent();
-                    } else {
-                        if (command.equals("search")) {
-                            searchString = TextCommandController.getInstance().generateNewSearchValue();
-                        }
-
-                        RequestData rd = new RequestData(null, searchString, null);
-                        MainController.getInstance().queryAPIs(rd, mainActivity);
-                    }
+                    RequestData rd = new RequestData(null, searchString, null);
+                    MainController.getInstance().queryAPIs(rd, mainActivity);
                 }
             }
         });
@@ -274,6 +280,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int REQUEST_SPEECH_RECOGNITION = 2;
     private String mCurrentPhotoPath;
     private Uri photoURI;
 
@@ -314,46 +321,113 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode != RESULT_CANCELED && requestCode == REQUEST_IMAGE_CAPTURE) {
+        if (resultCode != RESULT_CANCELED
+                && requestCode == REQUEST_SPEECH_RECOGNITION
+                && data != null) {
+            onSpeechRecognitionResults(data);
+        } else if (resultCode != RESULT_CANCELED && requestCode == REQUEST_IMAGE_CAPTURE) {
+            onImageCaptureResults();
+        }
+    }
 
-            Log.i("PHOTO", "Print Stack Trace: " + mCurrentPhotoPath);
-            Log.i("PHOTO", "Photo URI: " + photoURI.toString());
-            Log.i("PHOTO", "Photo URI Data: " + data);
 
-            File imageFile = new File(photoURI.toString());
+    /**
+     * This will handle everything that is returned as a response to the text
+     * @param data
+     */
+    public void onSpeechRecognitionResults(Intent data) {
+        Log.i("MainActivity", "I made it into the results section of the intent");
+        EditText searchBar = (EditText) findViewById(R.id.search_text);
 
+        // retrieved code from: http://stackoverflow.com/questions/12120044/speech-recogniser-
+        // intent-not-getting-back-the-data-in-onactivityresult
+        ArrayList<String> words = data.getStringArrayListExtra(
+                RecognizerIntent.EXTRA_RESULTS);
 
-            //ImageView myImageView = (ImageView) findViewById(R.id.imageview);
-            Bitmap photoBitmap = BitmapFactory.decodeFile(mCurrentPhotoPath);
-            //myImageView.setImageBitmap(photoBitmap);
+        String result = "";
+        if (words.size() > 0) {
+            result = words.get(0);
+        }
 
-            SparseArray<Barcode> barcodes = bsh.readBarcode(photoBitmap, getApplicationContext());
+        if (!result.equals("")) {
+            searchBar.setText("");
+            searchBar.setText(result);
 
-            // ensure that the result of read barcode is not null
-            if (barcodes != null) {
-                mBarcodes = bsh.validateBarcodes(barcodes);
-            }
+            String command = TextCommandController
+                    .getInstance()
+                    .decideAction(result);
 
-            Log.i("MainActivity", "Number of valid barcodes: " + mBarcodes.size());
+            Log.i("MainActivity", "command: " + command);
 
-            //TODO determine that this is the correct place for this hookin
-            for (int i = 0; i < mBarcodes.size(); i++) {
-                Log.i("MainActivity", "Calling the main controller!");
-                RequestData rd = new RequestData(mBarcodes.get(i).rawValue);
+            if (command.equals("camera")) {
+                dispatchTakePictureIntent();
+            } else {
+                if (command.equals("search")) {
+                    result = TextCommandController.getInstance().generateNewSearchValue();
+                }
 
+                // by default it will perform a search if it does not recognize the command
+                RequestData rd = new RequestData(null, result, null);
                 MainController.getInstance().queryAPIs(rd, this);
             }
 
-            try {
-                //wait(4000);
-                bsh.deletePictureFile(mCurrentPhotoPath);
-                Log.i("Delete Picture", "DELETED");
-            } catch (Exception e)
-            {
-                Log.e("IMAGE ERROR", "An error occured with the image");
-                e.printStackTrace();
-            }
 
+            Log.i("MainActivity", result);
+        }
+    }
+
+
+    /****
+     * This will handle everything that happens after a picture is taken with a barcode
+     */
+    public void onImageCaptureResults() {
+        File imageFile = new File(photoURI.toString());
+
+
+        //ImageView myImageView = (ImageView) findViewById(R.id.imageview);
+        Bitmap photoBitmap = BitmapFactory.decodeFile(mCurrentPhotoPath);
+        //myImageView.setImageBitmap(photoBitmap);
+
+        SparseArray<Barcode> barcodes = bsh.readBarcode(photoBitmap, getApplicationContext());
+
+        // ensure that the result of read barcode is not null
+        if (barcodes != null) {
+            mBarcodes = bsh.validateBarcodes(barcodes);
+        }
+
+        Log.i("MainActivity", "Number of valid barcodes: " + mBarcodes.size());
+
+        //TODO determine that this is the correct place for this hookin
+        for (int i = 0; i < mBarcodes.size(); i++) {
+            Log.i("MainActivity", "Calling the main controller!");
+            RequestData rd = new RequestData(mBarcodes.get(i).rawValue);
+
+            MainController.getInstance().queryAPIs(rd, this);
+        }
+
+        try {
+            //wait(4000);
+            bsh.deletePictureFile(mCurrentPhotoPath);
+            Log.i("Delete Picture", "DELETED");
+        } catch (Exception e)
+        {
+            Log.e("IMAGE ERROR", "An error occured with the image");
+            e.printStackTrace();
+        }
+    }
+
+
+    public void speechRecognizerIntent() {
+        // retrieved code from: http://www.androidhive.info/2014/07/android-speech-to-text-tutorial/
+        Intent speech = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        speech.putExtra(RecognizerIntent.ACTION_RECOGNIZE_SPEECH,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        speech.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+
+        try {
+            startActivityForResult(speech, REQUEST_SPEECH_RECOGNITION);
+        } catch (ActivityNotFoundException a) {
+            Log.e("MainActivity", "Speech not recognized");
         }
     }
 }

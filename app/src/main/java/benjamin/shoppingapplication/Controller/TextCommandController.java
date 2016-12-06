@@ -31,6 +31,7 @@ public class TextCommandController {
      * @return - This will return a command { "none", "camera", "search" }
      */
     public String decideAction(String inputText) {
+        Log.i("TextCommandController", "inputText: " + inputText);
 
         populateSearchWords(inputText);
 
@@ -81,6 +82,7 @@ public class TextCommandController {
         String [] words = inputText.split(" ");
 
 
+        search_words.clear();
         // create a linked list that will be able to remove the search words
         for (int i = 0; i < words.length; i++) {
             search_words.add(words[i]);

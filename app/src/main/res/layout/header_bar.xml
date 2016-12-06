@@ -5,4 +5,12 @@
     android:background="@color/colorAccent"
     android:elevation="4dp">
 
+    <Button
+        android:id="@+id/voice_btn"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@android:drawable/ic_btn_speak_now"
+        android:layout_gravity="right"
+        android:background="@color/colorAccent" />
+
 </android.support.v7.widget.Toolbar>
